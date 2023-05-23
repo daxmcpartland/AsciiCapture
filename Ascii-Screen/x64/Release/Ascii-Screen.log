@@ -1,0 +1,2 @@
+﻿  main.cpp
+C:\Users\Dax21\source\repos\Ascii-Screen\Ascii-Screen\main.cpp(71,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
