@@ -63,6 +63,7 @@ int main()
     int pxChar;
     std::cout << "Enter how many pixels per character(for best result choose a number between 4-16, ex. 8): " << std::endl;
     std::cin >> pxChar;
+    std::cout << "Close this window to exit" << std::endl;
 
     //anything less than 4 pixels per ascii really messes with the fps
     if (pxChar < 4)
@@ -70,7 +71,6 @@ int main()
     HWND hwndDesktop = GetDesktopWindow();
     float fontScale = 1.0 + log2(pxChar) * .20;
 
-    // rows = 1067 cols = 1707
     cv::namedWindow("Display window");
 
     // different density strings that are sometimes cool.
@@ -81,13 +81,12 @@ int main()
 
     while (true) {
         cv::Mat image = hwnd2mat(hwndDesktop);
-        std::cout << image.size << std::endl;
         cv::Mat grayImage;
         cvtColor(image, grayImage, cv::COLOR_BGR2GRAY);
 
         uint8_t* pixelPtr = (uint8_t*)grayImage.data;
         int cn = grayImage.channels();
-        cv::Mat test(1067, 1707, CV_8UC1);
+        cv::Mat endResult(image.rows, image.cols, CV_8UC1);
 
         int dataCounter = 0;
         for (int i = 0; i < grayImage.rows; i += pxChar)
@@ -101,7 +100,7 @@ int main()
 
                 std::string s;
                 s.push_back(densityString.at(charValue));
-                cv::putText(test,
+                cv::putText(endResult,
                     s,
                     cv::Point(j, i), // Coordinates
                     cv::FONT_HERSHEY_COMPLEX_SMALL, // Font
@@ -112,8 +111,8 @@ int main()
             }
         }
 
-        cv::imshow("Display window", test);
-        cv::waitKey(25);
+        cv::imshow("Display window", endResult);
+        cv::waitKey(27);
     }
     return 0;
 }
