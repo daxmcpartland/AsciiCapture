@@ -81,6 +81,7 @@ int main()
 
     while (true) {
         cv::Mat image = hwnd2mat(hwndDesktop);
+        std::cout << image.size << std::endl;
         cv::Mat grayImage;
         cvtColor(image, grayImage, cv::COLOR_BGR2GRAY);
 
