@@ -63,6 +63,14 @@ int main()
     int pxChar;
     std::cout << "Enter how many pixels per character(for best result choose a number between 4-16, ex. 8): " << std::endl;
     std::cin >> pxChar;
+    bool colored;
+    std::string response;
+    std::cout << "Colored? (yes or no)" << std::endl;
+    std::cin >> response;
+    if (response == "yes")
+        colored = true;
+    else
+        colored = false;
     std::cout << "Close this window to exit" << std::endl;
 
     //anything less than 4 pixels per ascii really messes with the fps
@@ -80,34 +88,56 @@ int main()
     std::string densityString = " .:-=+*#%@";
 
     while (true) {
-        cv::Mat image = hwnd2mat(hwndDesktop);
-        cv::Mat grayImage;
-        cvtColor(image, grayImage, cv::COLOR_BGR2GRAY);
+        cv::Mat screen = hwnd2mat(hwndDesktop);
+        cv::Mat screenData;
+        if (!colored)
+            cvtColor(screen, screenData, cv::COLOR_BGR2GRAY);
+        else
+            screenData = screen; // yea this is dumb idc i'm lazy
 
-        uint8_t* pixelPtr = (uint8_t*)grayImage.data;
-        int cn = grayImage.channels();
-        cv::Mat endResult(image.rows, image.cols, CV_8UC1);
+        uint8_t* pixelPtr = (uint8_t*)screenData.data;
+        int cn = screenData.channels();
+        cv::Mat endResult;
+        if(!colored)
+            endResult = cv::Mat(screen.rows, screen.cols, CV_8UC1);
+        else
+            endResult = cv::Mat(screen.rows, screen.cols, CV_8UC3);
 
         int dataCounter = 0;
-        for (int i = 0; i < grayImage.rows; i += pxChar)
+        for (int i = 0; i < screenData.rows; i += pxChar)
         {
-            for (int j = 0; j < grayImage.cols; j += pxChar)
+            for (int j = 0; j < screenData.cols; j += pxChar)
             {
+
+                int b = pixelPtr[i * screenData.cols * cn + j * cn + 0];
+                int g = pixelPtr[i * screenData.cols * cn + j * cn + 1];
+                int r = pixelPtr[i * screenData.cols * cn + j * cn + 2];
                 int grayness = 0;
-                grayness += pixelPtr[i * grayImage.cols * cn + j * cn + 0];
+                grayness += (r + b + g) / 3;
                 int charValue = int(round(densityString.length() / 255.0 * (grayness / 3)));
                 charValue = max(charValue, 0);
 
                 std::string s;
                 s.push_back(densityString.at(charValue));
-                cv::putText(endResult,
-                    s,
-                    cv::Point(j, i), // Coordinates
-                    cv::FONT_HERSHEY_COMPLEX_SMALL, // Font
-                    fontScale, // Scale. 2.0 = 2x bigger
-                    cv::Scalar(255, 255, 255), // BGR Color
-                    1, // Line Thickness
-                    cv::LINE_AA); // Anti-alias
+                // make ascii either color of pixel or black and white
+                if(!colored)
+                    cv::putText(endResult,
+                        s,
+                        cv::Point(j, i), // Coordinates
+                        cv::FONT_HERSHEY_COMPLEX_SMALL, // Font
+                        fontScale, // Scale. 2.0 = 2x bigger
+                        cv::Scalar(255, 255, 255), // BGR Color
+                        1, // Line Thickness
+                        cv::LINE_AA); // Anti-alias
+                else
+                    cv::putText(endResult,
+                        s,
+                        cv::Point(j, i), // Coordinates
+                        cv::FONT_HERSHEY_COMPLEX_SMALL, // Font
+                        fontScale, // Scale. 2.0 = 2x bigger
+                        cv::Scalar(b, g, r), // BGR Color
+                        1, // Line Thickness
+                        cv::LINE_AA); // Anti-alias
             }
         }
 
